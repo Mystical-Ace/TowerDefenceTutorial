@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class Plot : MonoBehaviour
 {
@@ -19,6 +20,12 @@ public class Plot : MonoBehaviour
 
     private void OnMouseEnter()
     {
+        // Check if the mouse is over any UI element
+        if (EventSystem.current.IsPointerOverGameObject())
+        {
+            return; // Don't change color if hovering over UI
+        }
+        
         sr.color = hoverColor;
     }
 
@@ -29,12 +36,27 @@ public class Plot : MonoBehaviour
 
     private void OnMouseDown()
     {
+        // Check if clicking on UI
+        if (EventSystem.current.IsPointerOverGameObject())
+        {
+            return; // Do nothing if clicking on UI
+        }
+        
         if (tower != null)
         {
             return;
         }
 
-        GameObject towerToBuild = BuildManager.main.GetSelectedTower();
-        tower = Instantiate(towerToBuild, transform.position, Quaternion.identity);
+        Tower towerToBuild = BuildManager.main.GetSelectedTower();
+
+        if (towerToBuild.cost > LevelManager.main.currency)
+        {
+            Debug.Log("You can't afford this tower");
+            return;
+        }
+
+        LevelManager.main.SpendCurrency(towerToBuild.cost);
+
+        tower = Instantiate(towerToBuild.prefab, transform.position, Quaternion.identity);
     }
 }
